@@ -77,7 +77,7 @@ class modSubtotal extends DolibarrModules
         // use this->picto='pictovalue'
         // If file is in module/img directory under name object_pictovalue.png
         // use this->picto='pictovalue@module'
-        $this->picto = 'subtotal@subtotal'; // mypicto@titre
+        $this->picto = 'modsubtotal@subtotal'; // mypicto@titre
         // Defined all module parts (triggers, login, substitutions, menus, css, etc...)
         // for default path (eg: /titre/core/xxxxx) (0=disable, 1=enable)
         // for specific path of parts (eg: /titre/core/modules/barcode)
@@ -122,6 +122,7 @@ class modSubtotal extends DolibarrModules
 				,'invoicelist'
 				,'supplierorderlist'
 				,'supplierinvoicelist'
+                ,'cron'
             ),
             // Set here all workflow context managed by module
             //'workflow' => array('order' => array('WORKFLOW_ORDER_AUTOCREATE_INVOICE')),
@@ -144,9 +145,9 @@ class modSubtotal extends DolibarrModules
         // List of modules id to disable if this one is disabled
         $this->requiredby = array();
         // Minimum version of PHP required by module
-        $this->phpmin = array(5, 3);
+        $this->phpmin = array(7,0);
         // Minimum version of Dolibarr required by module
-        $this->need_dolibarr_version = array(3, 2);
+        $this->need_dolibarr_version = array(15,0);
         $this->langfiles = array("subtotal@subtotal"); // langfiles@titre
         // Constants
         // List of particular constants to add when module is enabled
@@ -204,6 +205,11 @@ class modSubtotal extends DolibarrModules
         // 'contact'			to add a tab in contact view
         // 'categories_x'		to add a tab in category view
         // (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
+
+		//Compatibility V16
+		$dictionnariesTablePrefix = '';
+		if (intval(DOL_VERSION)< 16) $dictionnariesTablePrefix =  MAIN_DB_PREFIX;
+
         // Dictionnaries
         if (! isset($conf->subtotal->enabled)) {
             $conf->subtotal=new stdClass();
@@ -211,7 +217,7 @@ class modSubtotal extends DolibarrModules
         }
         $this->dictionaries = array(
 			'langs'=>'subtotal@subtotal',
-            'tabname'=>array(MAIN_DB_PREFIX.'c_subtotal_free_text'),		// List of tables we want to see into dictonnary editor
+            'tabname'=>array($dictionnariesTablePrefix.'c_subtotal_free_text'),		// List of tables we want to see into dictonnary editor
             'tablib'=>array($langs->trans('subtotalFreeLineDictionary')),													// Label of tables
             'tabsql'=>array('SELECT f.rowid as rowid, f.label, f.content, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_subtotal_free_text as f WHERE f.entity='.$conf->entity),	// Request to select fields
             'tabsqlsort'=>array('label ASC'),																					// Sort order
@@ -499,7 +505,13 @@ class modSubtotal extends DolibarrModules
             $extra->addExtraField('subtotal_show_qty', 'Afficher la Quantité du Sous-Total', 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
         }
 
-        return $this->_init($sql, $options);
+		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+
+		return $this->_init($sql, $options);
     }
 
     /**
